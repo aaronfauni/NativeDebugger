@@ -1,9 +1,11 @@
 #include <iostream>
 #include <unistd.h>
+#include <string>
 #include <string_view>
 #include <sys/ptrace.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <editline/readline.h>
 
 namespace {
 	pid_t attach(int argc, const char** argv) {
@@ -43,6 +45,8 @@ namespace {
 		}
 		return pid;
 	}
+
+	void handle_command(pid_t pid, std::string_view line);
 }
 
 int main(int argc, const char** argv) {
@@ -57,5 +61,12 @@ int main(int argc, const char** argv) {
 	int options = 0;
 	if (waitpid(pid, &wait_status, options) < 0) {
 		std::perror("waitpid failed");
+	}
+
+	char* line = nullptr;
+	while ((line = readline("sdb> ")) != nullptr) {
+		handle_command(pid, line);
+		add_history(line);
+		free(line);
 	}
 }
