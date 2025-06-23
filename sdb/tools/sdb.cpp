@@ -65,8 +65,22 @@ int main(int argc, const char** argv) {
 
 	char* line = nullptr;
 	while ((line = readline("sdb> ")) != nullptr) {
-		handle_command(pid, line);
-		add_history(line);
-		free(line);
+		std::string line_str;
+
+		if (line == std::string_view("")) {
+			free(line);
+			if (history_length > 0) {
+				line_str = history_list()[history_length - 1]->line;
+			}
+			else {
+				line_str = line;
+				add_history(line);
+				free(line);
+			}
+
+			if (!line_str.empty()) {
+				handle_command(pid, line_str);
+			}
+		}
 	}
 }
